@@ -45,8 +45,8 @@ def welcome():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/start<br/>"
-        f"/api/v1.0/start/end<br/>"
+        f"/api/v1.0/<start><br/>"
+        f"/api/v1.0/<start>/<end><br/>"
 
     )
 @app.route("/api/v1.0/precipitation")
@@ -87,30 +87,34 @@ def tabs():
     
     return jsonify(all_tops)
 
-@app.route('/api/v1.0/start')
-def start():
-    dates = input(f'Input a start yyyy-mm-dd:')
-
+@app.route('/api/v1.0/<start>')
+@app.route('/api/v1.0/<start>/<end>')
+def start_end(start = None, end = None):
     sel = [func.min(measurement.tobs), func.max(measurement.tobs), func.avg(measurement.tobs)]
-    most_active_temps = session.query(*sel).\
-    filter(measurement.station >= dates).all()
-    session.close()
-    temps = list(np.ravel(most_active_temps))
-    return jsonify(temps)
     
-@app.route('/api/v1.0/start/end')
-def start_end():
-    start_date = input(f'Input start date yyyy-mm-dd:')
-    end_date = input(f'Input end date yyyy-mm-dd:')
-    sel = [func.min(measurement.tobs), func.max(measurement.tobs), func.avg(measurement.tobs)]
+    if not end: 
+        start = dt.datetime.strptime(start, '%Y%m%d')
+    
+        
+        
+        most_active_temps = session.query(*sel).\
+            filter(measurement.station >= start).all()
+        session.close()
+    
+        temps = list(np.ravel(most_active_temps))
+        return jsonify(temps)
+    
+    start = dt.datetime.strptime(start, '%Y%m%d')
+    
+    end = dt.datetime.strptime(end, '%Y%m%d')
+    
     most_active_temps = session.query(*sel).\
-    filter(measurement.station >= start_date).\
-    filter(measurement.station >= end_date).all()
+        filter(measurement.station >= start).\
+        filter(measurement.station >= end).all()
     session.close()
+    
     temps = list(np.ravel(most_active_temps))
     return jsonify(temps)
-
-
 
 
 
