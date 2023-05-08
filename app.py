@@ -61,10 +61,10 @@ def precipitation():
 
 @app.route('/api/v1.0/stations')
 def stations_func():
-    total_stations = session.query(stations.station, stations.name).all()
-    stations_dict = {station: name for station, name in total_stations}
+    total_stations = session.query(stations.station, stations.name, stations.latitude, stations.longitude).all()
+    stations_list = list(np.ravel(total_stations))
     session.close()
-    return jsonify(stations_dict)
+    return jsonify(stations_list)
 
 @app.route('/api/v1.0/tobs')
 def tabs():
@@ -98,7 +98,7 @@ def start_end(start = None, end = None):
         
         
         most_active_temps = session.query(*sel).\
-            filter(measurement.station >= start).all()
+            filter(measurement.date >= start).all()
         session.close()
     
         temps = list(np.ravel(most_active_temps))
@@ -109,8 +109,8 @@ def start_end(start = None, end = None):
     end = dt.datetime.strptime(end, '%Y%m%d')
     
     most_active_temps = session.query(*sel).\
-        filter(measurement.station >= start).\
-        filter(measurement.station >= end).all()
+        filter(measurement.date >= start).\
+        filter(measurement.date >= end).all()
     session.close()
     
     temps = list(np.ravel(most_active_temps))
